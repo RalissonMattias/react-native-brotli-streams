@@ -17,6 +17,6 @@ const BrotliStreams = NativeModules.BrotliStreams
       }
     );
 
-export function multiply(a: number, b: number): Promise<number> {
-  return BrotliStreams.multiply(a, b);
+export function decompressBrotli(file: ArrayBuffer): Promise<number> {
+  return BrotliStreams.decompressBrotli(file);
 }
