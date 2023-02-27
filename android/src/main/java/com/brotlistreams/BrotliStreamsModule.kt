@@ -23,7 +23,7 @@ class BrotliStreamsModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun decompressBrotli(brotli: ReadableArray, promise: Promise) {
     val compressedData = ByteArray(brotli.size())
-    for(i in 0 until compressedData.size()) {
+    for(i in 0 until compressedData.size) {
       compressedData[i] = brotli.getInt(i).toByte()
     }
     val byteArray = Arguments.createArray()
@@ -42,7 +42,7 @@ class BrotliStreamsModule(reactContext: ReactApplicationContext) :
     outputStream.close()
 
     for(b in outputStream.toByteArray()) {
-      byteArray.pushInt((int) b)
+      byteArray.pushInt(b.toInt())
     }
     map.putArray("file", byteArray)
     promise.resolve(map)
