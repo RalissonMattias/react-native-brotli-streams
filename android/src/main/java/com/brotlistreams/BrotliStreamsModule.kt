@@ -1,17 +1,12 @@
 package com.brotlistreams
 
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.Promise
+import android.os.Build
+import androidx.annotation.RequiresApi
+import com.facebook.react.bridge.*
+import org.brotli.dec.BrotliInputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.util.zip.GZIPInputStream
-import org.brotli.dec.BrotliInputStream
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.WritableArray;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.ReadableArray
+import java.util.*
 
 class BrotliStreamsModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -20,19 +15,17 @@ class BrotliStreamsModule(reactContext: ReactApplicationContext) :
     return NAME
   }
 
+  @RequiresApi(Build.VERSION_CODES.O)
   @ReactMethod
-  fun decompressBrotli(brotli: ReadableArray, promise: Promise) {
-    val compressedData = ByteArray(brotli.size())
-    for(i in 0 until compressedData.size) {
-      compressedData[i] = brotli.getInt(i).toByte()
-    }
-    val byteArray = Arguments.createArray()
+  fun decompressBrotli(brotli: String, promise: Promise) {
+    val compressedData = Base64.getDecoder().decode(brotli)
     val map = Arguments.createMap()
     val outputStream = ByteArrayOutputStream()
     val inputStream = BrotliInputStream(ByteArrayInputStream(compressedData))
 
     val buffer = ByteArray(1024)
     var len = inputStream.read(buffer)
+
     while (len > 0) {
       outputStream.write(buffer, 0, len)
       len = inputStream.read(buffer)
@@ -41,9 +34,29 @@ class BrotliStreamsModule(reactContext: ReactApplicationContext) :
     inputStream.close()
     outputStream.close()
 
-    for(b in outputStream.toByteArray()) {
+    map.putString("content", String(outputStream.toByteArray()))
+    promise.resolve(map)
+  }
+
+  @RequiresApi(Build.VERSION_CODES.O)
+  @ReactMethod
+  fun base64ToBrotli(base64String: String, promise: Promise) {
+    val bytes = Base64.getDecoder().decode(base64String)
+    val inputStream = BrotliInputStream(ByteArrayInputStream(bytes))
+    val outputStream = ByteArrayOutputStream()
+
+    val byteArray = Arguments.createArray()
+    val map = Arguments.createMap()
+
+    inputStream.copyTo(outputStream)
+
+    outputStream.close()
+    inputStream.close()
+
+    for (b in outputStream.toByteArray()) {
       byteArray.pushInt(b.toInt())
     }
+
     map.putArray("file", byteArray)
     promise.resolve(map)
   }

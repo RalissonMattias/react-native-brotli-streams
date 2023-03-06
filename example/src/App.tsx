@@ -1,18 +1,37 @@
-import * as React from 'react';
+import React, { useEffect } from 'react';
 
-import { StyleSheet, View, Text } from 'react-native';
-import { multiply } from 'react-native-brotli-streams';
+import { StyleSheet, Text, View } from 'react-native';
+
+import fs, { CachesDirectoryPath } from 'react-native-fs';
+
+import { decompressBrotli } from '../../src/index';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
+  useEffect(() => {
+    const fetchInfos = async () => {
+      const url =
+        'https://backend.jurishand.com/law/constituicao-de-05-outubro-1988.json.br';
 
-  React.useEffect(() => {
-    multiply(3, 7).then(setResult);
+      const baseFileUrl = `${CachesDirectoryPath}/law.json.br`;
+
+      const download = fs.downloadFile({
+        fromUrl: url,
+        toFile: baseFileUrl,
+      });
+
+      if ((await download.promise).statusCode === 200) {
+        const content = await fs.readFile(baseFileUrl, 'base64');
+        const file = await decompressBrotli(content);
+        console.log(file);
+      }
+    };
+
+    fetchInfos();
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      <Text>Working</Text>
     </View>
   );
 }
@@ -22,10 +41,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  box: {
-    width: 60,
-    height: 60,
-    marginVertical: 20,
   },
 });

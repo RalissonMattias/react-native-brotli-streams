@@ -17,6 +17,10 @@ const BrotliStreams = NativeModules.BrotliStreams
       }
     );
 
-export function decompressBrotli(file: ArrayBuffer): Promise<number> {
+export function decompressBrotli(file: string): Promise<number> {
+  return BrotliStreams.decompressBrotli(file);
+}
+
+export function base64ToString(file: string): Promise<number> {
   return BrotliStreams.decompressBrotli(file);
 }
